@@ -169,7 +169,6 @@ corr <- findCorrelation(trainCor, cutoff = cutoff, names = TRUE)
 # Create heatmap of correlation between features
 heatmap(as.matrix(trainCor), col = brewer.pal(9, "RdPu"), labCol = NA)
 
-
 ### PRINCIPAL COMPONENT ANALYSIS
 
 # Save principal component analysis in pca object
@@ -186,15 +185,21 @@ summary(pca)$importance[,1:10]
 data.frame(pca$x[,1:10], Diagnosis = train$y) %>%
     gather(key = "PC", value = "value", -Diagnosis) %>%
     ggplot(aes(PC, value, fill = Diagnosis)) +
-    geom_boxplot()
-
+    geom_boxplot() +
+    scale_fill_discrete(name="Diagnosis",
+                        breaks=c("B", "M"),
+                        labels=c("Benign", "Malignant"))
+  
 # Create scatter plot of PC1 and PC2 by diagnosis
 data.frame(pca$x[,1:2], Diagnosis = train$y) %>%
   ggplot(aes(PC1, PC2, color = Diagnosis)) +
   geom_point() +
   stat_ellipse() +
   xlab(paste("PC1: ", percent(pca.var.per[1],0.1))) +
-  ylab(paste("PC2: ", percent(pca.var.per[2],0.1)))
+  ylab(paste("PC2: ", percent(pca.var.per[2],0.1))) +
+  scale_color_discrete(name="Diagnosis",
+                       breaks=c("B", "M"),
+                       labels=c("Benign", "Malignant"))
 
 #######################################################################################
 ### METHODS
