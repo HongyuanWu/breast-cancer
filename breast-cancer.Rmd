@@ -238,7 +238,7 @@ d(x_1,x_2) = \sqrt{\sum_{i=1}^{569}\left(x_{1,i}-x_{2,i}\right)^2}
 
 The average distance between all samples included in the train set was `r ave_dist_samples`. Benign samples were closer to each other (`r distb_b_samples`) than to malignant samples (`r distb_m_samples`). Of note, benign samples were also closer to each other than malignant samples (`r distm_m_samples`) were from each other, indicating greater variance in the measured features in malignant cells. The heatmap shown in Figure 2 provides a visualisation of the distances between samples. A sequential palette ("Blues" from the RColorBrewer package, see @neuwirth_2014) was selected to highlight the difference between those pairings that are further from each other (dark colours) and those that are close together (light colours). The heatmap shows that samples are relatively well clustered by class (green: benign, red: malignant) and that benign samples are closest to each other (light blue hue in the bottom right quadrant) and furthest from malignant samples (more dark blue hue in the top right and bottom left quadrants).
 
-```{r heatmap-sample-dist, fig.height = 6, out.width="80%", fig.cap="Heatmap of distance between samples"}
+```{r heatmap-sample-dist, fig.height = 6, out.width="80%", fig.cap="Heatmap of distance between benign (green) and malignant (red) samples"}
 # Create heatmap of distance between samples
 heatmap(as.matrix(d_samples), symm = T, revC = T,
         col = brewer.pal(4, "Blues"),
@@ -298,7 +298,7 @@ corr_index <- findCorrelation(trainCor, cutoff = cutoff, names = FALSE)
 corr <- findCorrelation(trainCor, cutoff = cutoff, names = TRUE)
 
 # Create heatmap of correlation between features
-heatmap(as.matrix(trainCor), col = brewer.pal(9, "RdPu"), labCol = NA)
+heatmap(as.matrix(trainCor), col = brewer.pal(9, "RdPu"), labCol = NA, showlegend = NA)
 ```
 
 The heatmap in Figure 4 plots the absolute correlation coefficients between each of the 30 features included in the data-set. A sequential palette ("RdPu" from the RColorBrewer package, see @neuwirth_2014) was selected to highlight the difference between those pairings that are highly positively or negatively correlated (dark colours) and those that are not very correlated with each other (light colours).
@@ -336,7 +336,10 @@ Figure 5 is a series of box plots for each of the first 10 principal components 
 data.frame(pca$x[,1:10], Diagnosis = train$y) %>%
     gather(key = "PC", value = "value", -Diagnosis) %>%
     ggplot(aes(PC, value, fill = Diagnosis)) +
-    geom_boxplot()
+    geom_boxplot() +
+    scale_fill_discrete(name="Diagnosis",
+                        breaks=c("B", "M"),
+                        labels=c("Benign", "Malignant"))
 ```
 Figure 6 is a two-dimensional scatter plot of the first two principal components, data-points coloured red if classified as benign and blue if classified as malignant. The graph shows that the malignant data-points are more spread out than the benign data-points and that more of the variance can be accounted for on the $x$-axis (PC1) than on the $y$-axis (PC2). Ellipses help to visualise this even better, firstly with a larger ellipse for malignant data-points than for benign data-points and considerable separation of data by classification, despite some overlap. This analysis support the use of PCA in algorithm development to predict diagnosis from this data-set.
 
@@ -347,7 +350,10 @@ data.frame(pca$x[,1:2], Diagnosis = train$y) %>%
   geom_point() +
   stat_ellipse() +
   xlab(paste("PC1: ", percent(pca.var.per[1],0.1))) +
-  ylab(paste("PC2: ", percent(pca.var.per[2],0.1)))
+  ylab(paste("PC2: ", percent(pca.var.per[2],0.1))) +
+  scale_color_discrete(name="Diagnosis",
+                      breaks=c("B", "M"),
+                      labels=c("Benign", "Malignant"))
 ```
 
 \newpage
@@ -358,7 +364,7 @@ data.frame(pca$x[,1:2], Diagnosis = train$y) %>%
 
 The exploratory analysis of the Wisconsin breast cancer (diagnostic) data-set revealed patterns across both samples and features that support the use of machine learning techniques to develop predictive algorithms, including the use of both supervised and unsupervised models.
 
-Prior to testing any models, it was necessary to normalise the test data to reflect changes made to the train data, i.e. to centre and scale the data using the column means and standard deviations calculated from the train set. This approach allows for the test set to be normalised in a way that is consistent with the train set.
+Prior to testing any models, it was necessary to normalise the test data to reflect changes made to the train data, i.e. to centre and scale the data using the column means and standard deviations calculated from the train set. Taking this approach allowed for the test set to be normalised in a way that was consistent with the train set but without allowing the test data itself to influence the training of the algorithm.
 
 ```{r centre-scale-test-set}
 ## Centre the test$x data around zero by subtracting the train$x column mean 
@@ -909,7 +915,7 @@ model_results %>%
                       "Generative models" = 4,
                       "Discriminative models" = 5,
                       "Ensemble" = 1)) %>%
-  footnote(general = "FNR = false negative rate; FPR = false positive rate")
+  footnote(general = "FNR = false negative rate; FPR = false positive rate; PCA = principal component analysis")
 ```
 
 This exercise highlights the importance of balance within the data-set to the performance of classification models. It also reinforces the importance of the F1 score in evaluating performance of models dealing with imbalanced data-sets. Random sampling and weighted random sampling resulted in F1 scores of `r model_results[1,5]` and `r model_results[2,5]` respectively.
